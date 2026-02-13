@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Exam Preparation System - Multi-Agent PEAS Framework</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.1em;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .agent-panel {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .sensor-panel {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .environment-panel {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: white;
+        }
+
+        .performance-panel {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: white;
+        }
+
+        .panel h2 {
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sensor-status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            margin: 8px 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .sensor-active {
+            background: rgba(46, 204, 113, 0.3);
+            box-shadow: 0 0 20px rgba(46, 204, 113, 0.4);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 20px rgba(46, 204, 113, 0.4); }
+            50% { box-shadow: 0 0 30px rgba(46, 204, 113, 0.6); }
+            100% { box-shadow: 0 0 20px rgba(46, 204, 113, 0.4); }
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #e74c3c;
+            transition: all 0.3s ease;
+        }
+
+        .status-active {
+            background: #2ecc71;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .metric:last-child {
+            border-bottom: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff88, #00ccff);
+            transition: width 2s ease;
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200px 0; }
+            100% { background-position: 200px 0; }
+        }
+
+        .control-panel {
+            grid-column: 1 / -1;
+            text-align: center;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            margin: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .data-stream {
+            background: #2c3e50;
+            color: #2ecc71;
+            font-family: 'Courier New', monospace;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            height: 150px;
+            overflow-y: auto;
+            font-size: 0.9em;
+        }
+
+        .log-entry {
+            margin: 3px 0;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .agent-card {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #fff;
+        }
+
+        .agent-active {
+            animation: glow 2s infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 15px rgba(255, 255, 255, 0.3); }
+            50% { box-shadow: 0 0 25px rgba(255, 255, 255, 0.6); }
+        }
+
+        .sensor-reading {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .reading-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            text-align: right;
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 120px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            margin: 15px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .wave {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 200%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.3), transparent);
+            animation: wave 3s linear infinite;
+        }
+
+        @keyframes wave {
+            0% { transform: translateX(-50%); }
+            100% { transform: translateX(0%); }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🤖 AI Exam Preparation System</h1>
+        <p>Multi-Agent PEAS Framework with Advanced Sensor Monitoring</p>
+    </div>
+
+    <div class="container">
+        <!-- Sensor Monitoring Panel -->
+        <div class="panel sensor-panel">
+            <h2>🔍 Active Sensor Systems</h2>
+            
+            <div class="sensor-status" id="behavior-sensor">
+                <div class="sensor-reading">
+                    <span>Behavior Analysis Sensor</span>
+                    <span class="reading-value" id="behavior-value">Monitoring...</span>
+                </div>
+                <div class="status-indicator"></div>
+            </div>
+
+            <div class="sensor-status" id="performance-sensor">
+                <div class="sensor-reading">
+                    <span>Performance Tracking Sensor</span>
+                    <span class="reading-value" id="performance-value">85.2%</span>
+                </div>
+                <div class="status-indicator"></div>
+            </div>
+
+            <div class="sensor-status" id="focus-sensor">
+                <div class="sensor-reading">
+                    <span>Focus Level Sensor</span>
+                    <span class="reading-value" id="focus-value">0.72</span>
+                </div>
+                <div class="status-indicator"></div>
+            </div>
+
+            <div class="sensor-status" id="stress-sensor">
+                <div class="sensor-reading">
+                    <span>Stress Detection Sensor</span>
+                    <span class="reading-value" id="stress-value">Low</span>
+                </div>
+                <div class="status-indicator"></div>
+            </div>
+
+            <div class="chart-container">
+                <div class="wave"></div>
+            </div>
+
+            <div class="data-stream" id="sensor-log">
+                <div class="log-entry">[INIT] Sensor systems initializing...</div>
+                <div class="log-entry">[READY] All sensors active and monitoring</div>
+            </div>
+        </div>
+
+        <!-- Multi-Agent System Panel -->
+        <div class="panel agent-panel">
+            <h2>🤖 AI Agents Status</h2>
+            
+            <div class="agent-card" id="topic-agent">
+                <h4>📚 Topic Analysis Agent</h4>
+                <p>Status: <span id="topic-status">Idle</span></p>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 0%" id="topic-progress"></div>
+                </div>
+            </div>
+
+            <div class="agent-card" id="assessment-agent">
+                <h4>📊 Student Assessment Agent</h4>
+                <p>Status: <span id="assessment-status">Idle</span></p>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 0%" id="assessment-progress"></div>
+                </div>
+            </div>
+
+            <div class="agent-card" id="utility-agent">
+                <h4>⚡ Utility Calculator Agent</h4>
+                <p>Status: <span id="utility-status">Idle</span></p>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 0%" id="utility-progress"></div>
+                </div>
+            </div>
+
+            <div class="agent-card" id="planner-agent">
+                <h4>📅 Study Plan Generator Agent</h4>
+                <p>Status: <span id="planner-status">Idle</span></p>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 0%" id="planner-progress"></div>
+                </div>
+            </div>
+
+            <div class="agent-card" id="monitor-agent">
+                <h4>📈 Progress Monitoring Agent</h4>
+                <p>Status: <span id="monitor-status">Idle</span></p>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 0%" id="monitor-progress"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Environment Status -->
+        <div class="panel environment-panel">
+            <h2>🌍 Environment Status</h2>
+            
+            <div class="metric">
+                <span>Current Subject:</span>
+                <span id="current-subject">Data Structures</span>
+            </div>
+            <div class="metric">
+                <span>Exam Date:</span>
+                <span id="exam-date">30 days remaining</span>
+            </div>
+            <div class="metric">
+                <span>Study Sessions Today:</span>
+                <span id="sessions-today">3</span>
+            </div>
+            <div class="metric">
+                <span>Topics Covered:</span>
+                <span id="topics-covered">7/12</span>
+            </div>
+            <div class="metric">
+                <span>Overall Progress:</span>
+                <span id="overall-progress">68%</span>
+            </div>
+
+            <div class="chart-container">
+                <div class="wave" style="animation-duration: 4s; background: linear-gradient(90deg, transparent, rgba(67, 233, 123, 0.4), transparent);"></div>
+            </div>
+        </div>
+
+        <!-- Performance Metrics -->
+        <div class="panel performance-panel">
+            <h2>📊 Live Performance Metrics</h2>
+            
+            <div class="metric">
+                <span>Knowledge Retention:</span>
+                <span id="retention-rate">87.5%</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 87%" id="retention-bar"></div>
+            </div>
+
+            <div class="metric">
+                <span>Study Efficiency:</span>
+                <span id="efficiency-rate">72.3%</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 72%" id="efficiency-bar"></div>
+            </div>
+
+            <div class="metric">
+                <span>Focus Consistency:</span>
+                <span id="focus-consistency">91.2%</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 91%" id="focus-bar"></div>
+            </div>
+
+            <div class="metric">
+                <span>Goal Alignment:</span>
+                <span id="goal-alignment">85.7%</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 86%" id="goal-bar"></div>
+            </div>
+
+            <div class="data-stream" id="performance-log">
+                <div class="log-entry">[METRIC] Retention rate updated: 87.5%</div>
+                <div class="log-entry">[ALERT] Focus level dropping, suggesting break</div>
+                <div class="log-entry">[SUCCESS] Topic mastery achieved: Arrays</div>
+            </div>
+        </div>
+
+        <!-- Control Panel -->
+        <div class="panel control-panel">
+            <h2>🎮 System Controls</h2>
+            <button class="btn" onclick="startStudySession()">Start Study Session</button>
+            <button class="btn" onclick="runDiagnostic()">Run Diagnostic Test</button>
+            <button class="btn" onclick="generatePlan()">Generate Study Plan</button>
+            <button class="btn" onclick="simulateProgress()">Simulate Progress</button>
+            <button class="btn" onclick="activateAllSensors()">Activate All Sensors</button>
+        </div>
+    </div>
+
+    <script>
+        // Sensor data simulation
+        let sensorActive = false;
+        let sessionActive = false;
+        
+        // Sensor readings
+        const sensorData = {
+            behavior: ['Focused', 'Motivated', 'Distracted', 'Overwhelmed'],
+            performance: () => (Math.random() * 20 + 75).toFixed(1) + '%',
+            focus: () => (Math.random() * 0.3 + 0.6).toFixed(2),
+            stress: ['Low', 'Medium', 'High', 'Very Low']
+        };
+
+        // Agent status tracking
+        const agents = [
+            { id: 'topic-agent', name: 'Topic Analysis', status: 'topic-status', progress: 'topic-progress' },
+            { id: 'assessment-agent', name: 'Assessment', status: 'assessment-status', progress: 'assessment-progress' },
+            { id: 'utility-agent', name: 'Utility Calculator', status: 'utility-status', progress: 'utility-progress' },
+            { id: 'planner-agent', name: 'Study Planner', status: 'planner-status', progress: 'planner-progress' },
+            { id: 'monitor-agent', name: 'Progress Monitor', status: 'monitor-status', progress: 'monitor-progress' }
+        ];
+
+        function updateSensorReadings() {
+            if (!sensorActive) return;
+
+            // Update sensor values
+            document.getElementById('behavior-value').textContent = 
+                sensorData.behavior[Math.floor(Math.random() * sensorData.behavior.length)];
+            document.getElementById('performance-value').textContent = sensorData.performance();
+            document.getElementById('focus-value').textContent = sensorData.focus();
+            document.getElementById('stress-value').textContent = 
+                sensorData.stress[Math.floor(Math.random() * sensorData.stress.length)];
+
+            // Activate sensor indicators
+            const sensors = ['behavior-sensor', 'performance-sensor', 'focus-sensor', 'stress-sensor'];
+            sensors.forEach(sensorId => {
+                const sensor = document.getElementById(sensorId);
+                sensor.classList.add('sensor-active');
+                sensor.querySelector('.status-indicator').classList.add('status-active');
+                
+                // Random deactivation and reactivation
+                setTimeout(() => {
+                    sensor.classList.remove('sensor-active');
+                    setTimeout(() => sensor.classList.add('sensor-active'), 500);
+                }, Math.random() * 2000 + 1000);
+            });
+
+            // Add log entries
+            addSensorLog();
+        }
+
+        function addSensorLog() {
+            const logs = [
+                '[SENSOR] Behavior pattern detected: Deep focus mode',
+                '[SENSOR] Performance spike detected: +12% efficiency',
+                '[SENSOR] Focus level stable at optimal range',
+                '[SENSOR] Stress indicators within normal parameters',
+                '[ALERT] Attention drift detected, recommending break',
+                '[SUCCESS] Learning velocity increased by 8%',
+                '[INFO] Optimal study time window identified'
+            ];
+
+            const logContainer = document.getElementById('sensor-log');
+            const randomLog = logs[Math.floor(Math.random() * logs.length)];
+            
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            logEntry.textContent = `[${new Date().toLocaleTimeString()}] ${randomLog}`;
+            
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+
+            // Keep only last 10 entries
+            while (logContainer.children.length > 10) {
+                logContainer.removeChild(logContainer.firstChild);
+            }
+        }
+
+        function activateAgent(agentInfo) {
+            const agentElement = document.getElementById(agentInfo.id);
+            const statusElement = document.getElementById(agentInfo.status);
+            const progressElement = document.getElementById(agentInfo.progress);
+
+            agentElement.classList.add('agent-active');
+            statusElement.textContent = 'Processing...';
+            
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 15 + 5;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(progressInterval);
+                    statusElement.textContent = 'Complete';
+                    setTimeout(() => {
+                        agentElement.classList.remove('agent-active');
+                        statusElement.textContent = 'Ready';
+                        progressElement.style.width = '0%';
+                    }, 2000);
+                } else {
+                    statusElement.textContent = `Processing... ${Math.floor(progress)}%`;
+                }
+                progressElement.style.width = progress + '%';
+            }, 300);
+        }
+
+        function startStudySession() {
+            sessionActive = true;
+            sensorActive = true;
+            
+            // Activate sensors sequentially
+            setTimeout(() => activateAgent(agents[0]), 500);
+            setTimeout(() => activateAgent(agents[1]), 1500);
+            setTimeout(() => activateAgent(agents[4]), 2500);
+            
+            // Start sensor updates
+            const sensorInterval = setInterval(updateSensorReadings, 2000);
+            
+            // Update performance metrics
+            updatePerformanceMetrics();
+            
+            setTimeout(() => {
+                sessionActive = false;
+                clearInterval(sensorInterval);
+                addPerformanceLog('[SESSION] Study session completed successfully');
+            }, 15000);
+        }
+
+        function runDiagnostic() {
+            agents.forEach((agent, index) => {
+                setTimeout(() => activateAgent(agent), index * 800);
+            });
+            
+            setTimeout(() => {
+                addPerformanceLog('[DIAGNOSTIC] Full system diagnostic completed');
+                addPerformanceLog('[RESULT] All agents operating at optimal performance');
+            }, 5000);
+        }
+
+        function generatePlan() {
+            activateAgent(agents[2]); // Utility Calculator
+            setTimeout(() => activateAgent(agents[3]), 1000); // Study Planner
+            
+            setTimeout(() => {
+                addPerformanceLog('[PLANNER] Optimal study plan generated');
+                addPerformanceLog('[INFO] 15 high-priority tasks identified');
+            }, 3000);
+        }
+
+        function simulateProgress() {
+            const metrics = ['retention-rate', 'efficiency-rate', 'focus-consistency', 'goal-alignment'];
+            const bars = ['retention-bar', 'efficiency-bar', 'focus-bar', 'goal-bar'];
+            
+            metrics.forEach((metricId, index) => {
+                const element = document.getElementById(metricId);
+                const barElement = document.getElementById(bars[index]);
+                const newValue = (Math.random() * 15 + 80).toFixed(1);
+                
+                setTimeout(() => {
+                    element.textContent = newValue + '%';
+                    barElement.style.width = newValue + '%';
+                }, index * 500);
+            });
+            
+            setTimeout(() => {
+                addPerformanceLog('[PROGRESS] Performance metrics updated');
+                addPerformanceLog('[INSIGHT] Study efficiency increased by 7%');
+            }, 2000);
+        }
+
+        function activateAllSensors() {
+            sensorActive = true;
+            const sensorUpdateInterval = setInterval(updateSensorReadings, 1500);
+            
+            // Run for 20 seconds then slow down
+            setTimeout(() => {
+                clearInterval(sensorUpdateInterval);
+                const slowInterval = setInterval(updateSensorReadings, 5000);
+            }, 20000);
+        }
+
+        function updatePerformanceMetrics() {
+            const performanceMetrics = [
+                'Knowledge retention improved to 89.2%',
+                'Focus consistency maintained at 93%',
+                'Study efficiency optimized to 78.5%',
+                'Goal alignment score: 88.3%'
+            ];
+            
+            performanceMetrics.forEach((metric, index) => {
+                setTimeout(() => {
+                    addPerformanceLog(`[METRIC] ${metric}`);
+                }, index * 2000);
+            });
+        }
+
+        function addPerformanceLog(message) {
+            const logContainer = document.getElementById('performance-log');
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            logEntry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+
+            while (logContainer.children.length > 8) {
+                logContainer.removeChild(logContainer.firstChild);
+            }
+        }
+
+        // Initialize system
+        document.addEventListener('DOMContentLoaded', function() {
+            // Start with initial sensor activation
+            setTimeout(() => {
+                activateAllSensors();
+                addPerformanceLog('[SYSTEM] AI Exam Prep System initialized');
+                addPerformanceLog('[INFO] Multi-agent PEAS framework active');
+            }, 1000);
+            
+            // Periodic background updates
+            setInterval(() => {
+                if (Math.random() < 0.3) {
+                    updateSensorReadings();
+                }
+            }, 8000);
+        });
+    </script>
+</body>
+</html>
